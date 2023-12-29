@@ -2,10 +2,12 @@ package com.ll;
 
 public class Calc {
   public static boolean recursionDebug = true; // 내가 디버그 모드를 켜겠다 할때는 true로 변경
+
   public static int runCallCount = 0;
 
-  public static int run(String exp) { // -(10 + 5)
+  public static int run(String exp) { // -(8 + 2) * -(7 + 3) + 5
     runCallCount++;
+
     exp = exp.trim();
     exp = stripOuterBracket(exp);
     // 음수괄호 패턴이면, 기존에 갖고있던 해석 패턴과는 맞지 않으니 패턴을 변경
@@ -14,17 +16,23 @@ public class Calc {
       exp = changeNegativeBracket(exp, pos[0], pos[1]);
     }
     exp = stripOuterBracket(exp);
+
     if (recursionDebug) {
+
       System.out.printf("exp(%d) : %s\n", runCallCount, exp);
     }
+
     // 연산기호가 없으면 바로 리턴
     if (!exp.contains(" ")) return Integer.parseInt(exp);
     boolean needToMultiply = exp.contains(" * ");
     boolean needToPlus = exp.contains(" + ") || exp.contains(" - ");
     boolean needToCompound = needToMultiply && needToPlus;
     boolean needToSplit = exp.contains("(") || exp.contains(")");
-    if (needToSplit) {  // -(10 + 5)
+
+    if (needToSplit) {
+      exp = exp.replaceAll("- ", "\\+ -");
       int splitPointIndex = findSplitPointIndex(exp);
+
       String firstExp = exp.substring(0, splitPointIndex);
       String secondExp = exp.substring(splitPointIndex + 1);
       char operator = exp.charAt(splitPointIndex);
@@ -32,7 +40,8 @@ public class Calc {
       return Calc.run(exp);
     } else if (needToCompound) {
       String[] bits = exp.split(" \\+ ");
-      return Integer.parseInt(bits[0]) + Calc.run(bits[1]); // TODO
+
+      return Integer.parseInt(bits[0]) + Calc.run(bits[1]);
     }
     if (needToPlus) {
       exp = exp.replaceAll("\\- ", "\\+ \\-");
@@ -106,19 +115,16 @@ public class Calc {
   private static String stripOuterBracket(String exp) {
     if (exp.charAt(0) == '(' && exp.charAt(exp.length() - 1) == ')') {
       int bracketCount = 0;
-
       for (int i = 0; i < exp.length(); i++) {
         if (exp.charAt(i) == '(') {
           bracketCount++;
         } else if (exp.charAt(i) == ')') {
           bracketCount--;
         }
-
         if (bracketCount == 0) {
           if (exp.length() == i + 1) {
             return stripOuterBracket(exp.substring(1, exp.length() - 1));
           }
-
           return exp;
         }
       }
@@ -126,7 +132,6 @@ public class Calc {
     return exp;
   }
 }
-
 //String exp = "-(8 + 2) * -(7 + 3) + 5";
 //
 //int startPos = 0;
